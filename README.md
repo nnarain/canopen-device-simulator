@@ -17,7 +17,7 @@ Install dependencies using your prefered method:
 
 ```bash
 $ cd to/project/directory
-$ mkdir build
+$ mkdir build && cd build
 $ cmake ..
 $ cmake --build .
 ```
