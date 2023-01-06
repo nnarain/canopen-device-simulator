@@ -9,7 +9,10 @@
 
 #include <sol/sol.hpp>
 
+#include <boost/program_options.hpp>
+
 #include <functional>
+#include <iostream>
 
 using namespace lely;
 
@@ -76,7 +79,32 @@ private:
     sol::state lua;
 };
 
-int main() {
+namespace po = boost::program_options;
+
+int main(int argc, char* argv[]) {
+    po::options_description desc{"Options"};
+    desc.add_options()
+        ("help,h", "Help")
+        ("interface,i", po::value<std::string>()->default_value("vcan0"), "CAN interface")
+        ("node,n", po::value<int>(), "Node ID")
+        ("model,m", po::value<std::string>(), "EDS file")
+        ("script,s", po::value<std::string>(), "Lua Script");
+
+    po::variables_map vm;
+    po::store(po::parse_command_line(argc, argv, desc), vm);
+    po::notify(vm);
+
+    if (vm.count("help"))
+    {
+        std::cout << desc << "\n";
+        return 0;
+    }
+
+    const auto interface = vm["interface"].as<std::string>();
+    const auto node_id = 2;
+    const auto model = vm["model"].as<std::string>();
+    const auto script = vm["script"].as<std::string>();
+
     // Initialize the I/O library. This is required on Windows, but a no-op on
     // Linux (for now).
     io::IoGuard io_guard;
@@ -99,14 +127,14 @@ int main() {
 
     // Create a virtual SocketCAN CAN controller and channel, and do not modify
     // the current CAN bus state or bitrate.
-    io::CanController ctrl("vcan0");
+    io::CanController ctrl(interface.c_str());
     io::CanChannel chan(poll, exec);
 
     chan.open(ctrl);
 
     // Setup slave device
     // canopen::BasicSlave slave(timer, chan, "cpp-slave.eds", "", 2);
-    SimulatedSlave slave{timer, chan, "device/device.eds", "", 2, "device/device.lua"};
+    SimulatedSlave slave{timer, chan, model, "", node_id, script};
     slave.OnInit();
 
     // Create a signal handler.
