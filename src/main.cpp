@@ -34,7 +34,8 @@ public:
         lua.script_file(script);
 
         // OD Access Functions
-        lua.set_function("GetU32", [this](const uint16_t idx, const uint8_t subidx) { return getU32(idx, subidx); });
+        lua.set_function("GetU32", &SimulatedSlave::getU32, this);
+        lua.set_function("SetU32", &SimulatedSlave::setU32, this);
     }
 
     virtual void OnInit() {
@@ -59,8 +60,17 @@ private:
         return value;
     }
 
+    template<typename T>
+    void setObject(const uint16_t idx, const uint8_t subidx, const sol::lua_value& value) {
+        (*this)[idx][subidx] = value.as<T>();
+    }
+
     sol::lua_value getU32(const uint16_t idx, const uint8_t subidx) {
         return getObject<uint32_t>(idx, subidx);
+    }
+
+    void setU32(const uint16_t idx, const uint8_t subidx, const sol::lua_value& value) {
+        setObject<uint32_t>(idx, subidx, value);
     }
 
     sol::state lua;
