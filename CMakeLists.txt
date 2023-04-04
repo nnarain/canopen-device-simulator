@@ -6,11 +6,12 @@ set_directory_properties(PROTPERTIES COMPILE_OPTIONS "-std=c++17;-Wall;-Wextra;-
 
 # Find Lua and SOL2
 find_package(Lua REQUIRED)
-find_package(SOL2 REQUIRED)
+find_package(sol2 REQUIRED)
 
 # Global include for SOL2 to find lua.h
 include_directories(
     ${LUA_INCLUDE_DIR}
+    ${SOL2_INCLUDE_DIRS}
 )
 
 # Setup Lely CANopen
@@ -24,12 +25,9 @@ add_executable(${PROJECT_NAME}
     src/main.cpp
 )
 
-target_include_directories(${PROJECT_NAME} PRIVATE
-    sol2
-)
-
 target_link_libraries(${PROJECT_NAME}
     PkgConfig::LELY_CANOPEN
     ${LUA_LIBRARIES}
     ${Boost_LIBRARIES}
+    ${SOL2_LIBRARIES}
 )
