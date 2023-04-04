@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
     }
 
     const auto interface = vm["interface"].as<std::string>();
-    const auto node_id = 2;
+    const auto node_id = (uint8_t)vm["node"].as<int>();
     const auto model = vm["model"].as<std::string>();
     const auto script = vm["script"].as<std::string>();
 
