@@ -1,12 +1,14 @@
-a = nil
-
 function OnInit()
-    a = 'hello'
-    print('OnInit')
+    ConfigureTimer(1000)
+    print('Device initialized')
 end
 
 function OnSync(cnt)
     print('Sync ' .. cnt)
+end
+
+function OnTick()
+    print('Timer tick')
 end
 
 function OnWrite(index, subindex)
