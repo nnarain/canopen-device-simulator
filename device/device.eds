@@ -259,13 +259,13 @@ NrOfEntries=1
 1=0x40010020
 
 [4000]
-ParameterName=UNSIGNED32 received by slave
+ParameterName=Foo
 DataType=0x0007
 AccessType=rw
 PDOMapping=1
 
 [4001]
-ParameterName=UNSIGNED32 sent from slave
+ParameterName=Bar
 DataType=0x0007
 AccessType=rwr
 PDOMapping=1

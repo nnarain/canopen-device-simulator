@@ -9,9 +9,13 @@ find_package(Lua REQUIRED)
 find_package(sol2 REQUIRED)
 
 # Global include for SOL2 to find lua.h
-include_directories(
+include_directories(SYSTEM
     ${LUA_INCLUDE_DIR}
     ${SOL2_INCLUDE_DIRS}
+)
+
+include_directories(
+    include/
 )
 
 # Setup Lely CANopen
