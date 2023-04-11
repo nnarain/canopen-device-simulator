@@ -15,8 +15,6 @@
 
 using namespace lely;
 
-
-
 namespace po = boost::program_options;
 
 int main(int argc, char* argv[]) {
@@ -83,6 +81,8 @@ int main(int argc, char* argv[]) {
 
     // Submit a task to be executed when a signal is raised. We don't care which.
     sigset.submit_wait([&](int /*signo*/) {
+        // Inform the slave it should shutdown
+        slave.Shutdown();
         // If the signal is raised again, terminate immediately.
         sigset.clear();
         // Perform a clean shutdown.

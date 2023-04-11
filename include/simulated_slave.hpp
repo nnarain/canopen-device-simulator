@@ -14,6 +14,9 @@
 
 #include <chrono>
 
+/**
+ * \brief CANopen Slave with Lua backend
+*/
 class SimulatedSlave : public lely::canopen::BasicSlave
 {
 public:
@@ -32,19 +35,32 @@ public:
         );
         lua.script_file(script);
 
+        // EMCY generation
+        lua.set_function("Emcy", &SimulatedSlave::Emcy, this);
+
         // OD Access Functions
         lua.set_function("GetU32", &SimulatedSlave::getU32, this);
         lua.set_function("SetU32", &SimulatedSlave::setU32, this);
 
         // Device configuration functions
         lua.set_function("ConfigureTimer", &SimulatedSlave::configurePeriodicTimer, this);
+        lua.set_function("ConfigureHeartbeat", &SimulatedSlave::configureHeartbeat, this);
     }
 
     virtual void OnInit() {
         lua["OnInit"]();
     }
 
+    virtual void Shutdown()
+    {
+        shutting_down_ = true;
+    }
+
 protected:
+    // -----------------------------------------------------------------------------------------------------------------
+    // Life Cycle
+    // -----------------------------------------------------------------------------------------------------------------
+
     void OnSync(uint8_t cnt, const time_point&) noexcept override {
         lua["OnSync"](cnt);
     }
@@ -55,7 +71,18 @@ protected:
         lua["OnWrite"](idx, subidx);
     }
 
+    // Invoke an EMCY
+    void Emcy(uint16_t error_code, uint8_t error_register)
+    {
+        // TODO(nnarain): Support vendor data
+        Error(error_code, error_register, nullptr);
+    }
+
 private:
+
+    // -----------------------------------------------------------------------------------------------------------------
+    // Object Dictionary Access
+    // -----------------------------------------------------------------------------------------------------------------
 
     /**
      * \brief Get OD object of type T
@@ -99,9 +126,21 @@ private:
         startPeriodicTimer();
     }
 
+    void configureHeartbeat(const uint16_t heartbeat_ms)
+    {
+        // TODO(nnarain): Doesn't seem to update. Maybe needs to be in pre-op?
+        (*this)[0x1017][0x00] = heartbeat_ms;
+    }
+
+    // -----------------------------------------------------------------------------------------------------------------
+    // Internal timer
+    // -----------------------------------------------------------------------------------------------------------------
     void startPeriodicTimer()
     {
-        SubmitWait(periodic_timer_duration_, std::bind(&SimulatedSlave::timerCallback, this));
+        if (!shutting_down_)
+        {
+            SubmitWait(periodic_timer_duration_, std::bind(&SimulatedSlave::timerCallback, this));
+        }
     }
 
     void timerCallback()
@@ -111,5 +150,7 @@ private:
     }
 
     sol::state lua;
+
+    bool shutting_down_{false};
     std::chrono::milliseconds periodic_timer_duration_;
 };
