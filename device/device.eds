@@ -114,6 +114,7 @@ CompactSubObj=1
 ParameterName=Producer heartbeat time
 DataType=0x0006
 AccessType=rw
+DefaultValue=64
 
 [1018]
 SubNumber=5
