@@ -63,9 +63,10 @@ SupportedObjects=11
 11=0x1A00
 
 [ManufacturerObjects]
-SupportedObjects=2
+SupportedObjects=3
 1=0x4000
 2=0x4001
+3=0x4002
 
 [1000]
 ParameterName=Device type
@@ -268,5 +269,12 @@ PDOMapping=1
 [4001]
 ParameterName=Bar
 DataType=0x0007
+AccessType=rwr
+PDOMapping=1
+
+[4002]
+ParameterName=Baz
+DataType=0x0007
+DefaultValue=0xDEADBEEF
 AccessType=rwr
 PDOMapping=1

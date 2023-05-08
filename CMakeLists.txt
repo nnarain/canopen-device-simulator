@@ -25,11 +25,11 @@ pkg_check_modules(LELY_CANOPEN REQUIRED IMPORTED_TARGET liblely-coapp)
 # Boost for program options
 find_package(Boost COMPONENTS program_options REQUIRED)
 
-add_executable(${PROJECT_NAME}
+add_executable(co-sim
     src/main.cpp
 )
 
-target_link_libraries(${PROJECT_NAME}
+target_link_libraries(co-sim
     PkgConfig::LELY_CANOPEN
     ${LUA_LIBRARIES}
     ${Boost_LIBRARIES}
