@@ -1,7 +1,9 @@
 -- Test Device
 
 require('objects')
-require('device_helper')
+
+-- Specify the ENV VAR `COSIM_LIB_PATH` to import
+--require('device_helper')
 
 function OnInit()
     ConfigureTimer(1000)
@@ -12,7 +14,7 @@ function OnInit()
     print('Bar: ' .. string.format('0x%4X', objects.bar))
     print('Baz: ' .. string.format('0x%4X', objects.baz))
 
-    VeryUsefulHelper()
+    -- VeryUsefulHelper()
 end
 
 function OnTick()
