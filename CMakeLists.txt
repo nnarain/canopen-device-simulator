@@ -27,6 +27,7 @@ find_package(Boost COMPONENTS program_options REQUIRED)
 
 add_executable(co-sim
     src/main.cpp
+    src/simulated_slave.cpp
 )
 
 target_link_libraries(co-sim

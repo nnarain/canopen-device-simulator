@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include "canopen_id.hpp"
+
 #include <lely/coapp/slave.hpp>
 #include <lely/io2/sys/io.hpp>
 
@@ -16,27 +18,9 @@
 #include <functional>
 #include <memory>
 #include <iostream>
+#include <map>
 
-/**
- * Index / subindex pair
-*/
-struct CanOpenObjectId
-{
-    CanOpenObjectId(uint16_t index, uint8_t subindex) : index{index}, subindex{subindex} {}
 
-    uint32_t unique_key() const
-    {
-        return (index << 16) | subindex;
-    }
-
-    bool operator<(const CanOpenObjectId& other)
-    {
-        return (*this).unique_key() < other.unique_key();
-    }
-
-    uint16_t index{0};
-    uint16_t subindex{0};
-};
 
 /**
  * @brief Object Types
@@ -53,17 +37,6 @@ enum class ObjectType
     UINT64
 };
 
-class ObjectBase
-{
-
-};
-
-template<typename T>
-class Object : public ObjectBase
-{
-public:
-};
-
 /**
  * \brief CANopen Slave with Lua backend
 */
@@ -76,120 +49,45 @@ public:
     SimulatedSlave(lely::io::TimerBase& timer, lely::io::CanChannelBase& chan,
             const std::string& dcf_txt,
             const std::string& dcf_bin, uint8_t id,
-            const std::string& script) : lely::canopen::BasicSlave{timer, chan, dcf_txt, dcf_bin, id}
-    {
-        // Initialize the Lua scripting environment
-        lua.open_libraries(
-            sol::lib::base,
-            sol::lib::string,
-            sol::lib::math,
-            sol::lib::os,
-            sol::lib::table
-        );
+            const std::string& script);
+    virtual ~SimulatedSlave() = default;
 
-        // User types
-        lua["ObjectType"] = lua.create_table_with(
-            "INT8", ObjectType::INT8,
-            "INT16", ObjectType::INT16,
-            "INT32", ObjectType::INT32,
-            "INT64", ObjectType::INT64,
-            "UINT8", ObjectType::UINT8,
-            "UINT16", ObjectType::UINT16,
-            "UINT32", ObjectType::UINT32,
-            "UINT64", ObjectType::UINT64
-        );
-
-        // Register `this` class as the object dictionary accessor
-        lua.new_usertype<SimulatedSlave>("CanOpenDevice",
-            sol::meta_function::index,
-            &SimulatedSlave::readObject,
-            sol::meta_function::new_index,
-            &SimulatedSlave::writeObject
-        );
-        lua["objects"] = this;
-
-        lua.set_function("Register", &SimulatedSlave::registerObject, this);
-
-        // EMCY generation
-        lua.set_function("Emcy", &SimulatedSlave::Emcy, this);
-
-        // Device configuration functions
-        lua.set_function("ConfigureTimer", &SimulatedSlave::configurePeriodicTimer, this);
-        lua.set_function("ConfigureHeartbeat", &SimulatedSlave::configureHeartbeat, this);
-
-        // Load the script
-        lua.script_file(script);
-    }
-
-    virtual void OnInit() {
-        lua["OnInit"]();
-    }
-
-    virtual void Shutdown()
-    {
-        shutting_down_ = true;
-    }
+    /**
+     * Signal initialization step to the script
+    */
+    virtual void OnInit();
+    /**
+     * Shutdown
+    */
+    virtual void Shutdown();
 
 protected:
     // -----------------------------------------------------------------------------------------------------------------
     // Life Cycle
     // -----------------------------------------------------------------------------------------------------------------
 
-    void OnSync(uint8_t cnt, const time_point&) noexcept override {
-        lua["OnSync"](cnt);
-    }
+    void OnSync(uint8_t cnt, const time_point&) noexcept override;
 
     // This function gets called every time a value is written to the local object
     // dictionary by an SDO or RPDO.
-    void OnWrite(uint16_t idx, uint8_t subidx) noexcept override {
-        lua["OnWrite"](idx, subidx);
-    }
+    void OnWrite(uint16_t idx, uint8_t subidx) noexcept override;
 
     // Invoke an EMCY
-    void Emcy(uint16_t error_code, uint8_t error_register)
-    {
-        // TODO(nnarain): Support vendor data
-        Error(error_code, error_register, nullptr);
-    }
+    void Emcy(uint16_t error_code, uint8_t error_register);
 
 private:
     // -----------------------------------------------------------------------------------------------------------------
     // Object Dictionary Access
     // -----------------------------------------------------------------------------------------------------------------
 
-    sol::object readObject(sol::stack_object key, sol::this_state L)
-    {
-        const auto object_name = key.as<std::string>();
-        return object_getters_[object_name](L);
-    }
+    sol::object readObject(sol::stack_object key, sol::this_state L);
+    void writeObject(sol::stack_object key, sol::stack_object value, sol::this_state);
 
-    void writeObject(sol::stack_object key, sol::stack_object value, sol::this_state)
-    {
-        const auto object_name = key.as<std::string>();
-        object_setters_[object_name](value);
-    }
+    void registerObject(const std::string& name, uint16_t index, uint8_t subindex, ObjectType object_type);
 
-    void registerObject(const std::string& name, uint16_t index, uint8_t subindex, ObjectType object_type)
-    {
-        object_getters_[name] = createGetter(index, subindex, object_type);
-        object_setters_[name] = createSetter(index, subindex, object_type);
-    }
+    void setupObjectCallback(uint16_t idx, uint8_t subidx, sol::function fn);
 
-    ObjectGetter createGetter(const uint16_t index, const uint8_t subindex, ObjectType object_type) {
-        switch(object_type)
-        {
-            case ObjectType::UINT8:
-                return createGetter<uint8_t>(index, subindex);
-            case ObjectType::UINT16:
-                return createGetter<uint16_t>(index, subindex);
-            case ObjectType::UINT32:
-                return createGetter<uint32_t>(index, subindex);
-            case ObjectType::UINT64:
-                return createGetter<uint64_t>(index, subindex);
-            default:
-                throw std::invalid_argument{"Invalid object type"};
-        }
-    }
+    ObjectGetter createGetter(const uint16_t index, const uint8_t subindex, ObjectType object_type);
 
     template<typename T>
     ObjectGetter createGetter(const uint16_t index, const uint8_t subindex) {
@@ -198,21 +96,7 @@ private:
         };
     }
 
-    ObjectSetter createSetter(const uint16_t index, const uint8_t subindex, ObjectType object_type) {
-        switch(object_type)
-        {
-            case ObjectType::UINT8:
-                return createSetter<uint8_t>(index, subindex);
-            case ObjectType::UINT16:
-                return createSetter<uint16_t>(index, subindex);
-            case ObjectType::UINT32:
-                return createSetter<uint32_t>(index, subindex);
-            case ObjectType::UINT64:
-                return createSetter<uint64_t>(index, subindex);
-            default:
-                throw std::invalid_argument{"Invalid object type"};
-        }
-    }
+    ObjectSetter createSetter(const uint16_t index, const uint8_t subindex, ObjectType object_type);
 
     template<typename T>
     ObjectSetter createSetter(const uint16_t index, const uint8_t subindex) {
@@ -242,34 +126,15 @@ private:
     // Device configuration
     // -----------------------------------------------------------------------------------------------------------------
 
-    void configurePeriodicTimer(const uint32_t duration_ms)
-    {
-        periodic_timer_duration_ = std::chrono::milliseconds(duration_ms);
-        startPeriodicTimer();
-    }
+    void configurePeriodicTimer(const uint32_t duration_ms);
 
-    void configureHeartbeat(const uint16_t heartbeat_ms)
-    {
-        // TODO(nnarain): Doesn't seem to update. Maybe needs to be in pre-op?
-        (*this)[0x1017][0x00] = heartbeat_ms;
-    }
+    void configureHeartbeat(const uint16_t heartbeat_ms);
 
     // -----------------------------------------------------------------------------------------------------------------
     // Internal timer
     // -----------------------------------------------------------------------------------------------------------------
-    void startPeriodicTimer()
-    {
-        if (!shutting_down_)
-        {
-            SubmitWait(periodic_timer_duration_, std::bind(&SimulatedSlave::timerCallback, this));
-        }
-    }
-
-    void timerCallback()
-    {
-        lua["OnTick"]();
-        startPeriodicTimer();
-    }
+    void startPeriodicTimer();
+    void timerCallback();
 
     sol::state lua;
 
@@ -278,4 +143,6 @@ private:
 
     std::map<std::string, ObjectGetter> object_getters_;
     std::map<std::string, ObjectSetter> object_setters_;
+
+    std::map<CanOpenObjectId, sol::function> object_callbacks_;
 };
