@@ -28,7 +28,7 @@ Usage
 
 In order to run the scripted CANopen device you will need the following:
 
-* An device file of your device
+* An EDS/DCF file of your device
 * A Lua script representing the device behavior you wish to simulate
 
 A device script represents the device itself. A few functions are provided to access the device life cycle.
