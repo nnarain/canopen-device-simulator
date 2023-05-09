@@ -7,6 +7,8 @@
 
 #include "simulated_slave.hpp"
 
+#include <cstdlib>
+
 SimulatedSlave::SimulatedSlave(lely::io::TimerBase& timer, lely::io::CanChannelBase& chan,
         const std::string& dcf_txt,
         const std::string& dcf_bin, uint8_t id,
@@ -18,8 +20,10 @@ SimulatedSlave::SimulatedSlave(lely::io::TimerBase& timer, lely::io::CanChannelB
         sol::lib::string,
         sol::lib::math,
         sol::lib::os,
-        sol::lib::table
+        sol::lib::table,
+        sol::lib::package
     );
+    setupLibraryPath(lua);
 
     // User types
     lua["ObjectType"] = lua.create_table_with(
@@ -54,6 +58,15 @@ SimulatedSlave::SimulatedSlave(lely::io::TimerBase& timer, lely::io::CanChannelB
 
     // Load the script
     lua.script_file(script);
+}
+
+void SimulatedSlave::setupLibraryPath(sol::state&)
+{
+    const std::string env_paths = std::string{std::getenv("COSIM_LIB_PATH")};
+
+    const std::string package_path = lua["package"]["path"];
+
+    lua["package"]["path"] = package_path + (!package_path.empty() ? ";" : "") + env_paths;
 }
 
 void SimulatedSlave::OnInit()

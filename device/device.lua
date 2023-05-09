@@ -1,7 +1,7 @@
--- Device objects
-Register('foo', 0x4000, 0x00, ObjectType.UINT32)
-Register('bar', 0x4001, 0x00, ObjectType.UINT32)
-Register('baz', 0x4002, 0x00, ObjectType.UINT32)
+-- Test Device
+
+require('objects')
+require('device_helper')
 
 function OnInit()
     ConfigureTimer(1000)
@@ -11,6 +11,8 @@ function OnInit()
     print('Foo: ' .. string.format('0x%4X', objects.foo))
     print('Bar: ' .. string.format('0x%4X', objects.bar))
     print('Baz: ' .. string.format('0x%4X', objects.baz))
+
+    VeryUsefulHelper()
 end
 
 function OnTick()
