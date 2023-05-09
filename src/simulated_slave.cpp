@@ -43,6 +43,7 @@ SimulatedSlave::SimulatedSlave(lely::io::TimerBase& timer, lely::io::CanChannelB
     lua["objects"] = this;
 
     lua.set_function("Register", &SimulatedSlave::registerObject, this);
+    lua.set_function("ObjectCallback", &SimulatedSlave::setupObjectCallback, this);
 
     // EMCY generation
     lua.set_function("Emcy", &SimulatedSlave::Emcy, this);
@@ -72,7 +73,13 @@ void SimulatedSlave::OnSync(uint8_t cnt, const time_point&) noexcept
 
 void SimulatedSlave::OnWrite(uint16_t idx, uint8_t subidx) noexcept
 {
-    lua["OnWrite"](idx, subidx);
+    // lua["OnWrite"](idx, subidx);
+    CanOpenObjectId id{idx, subidx};
+
+    if (object_callbacks_.find(id) != object_callbacks_.end())
+    {
+        object_callbacks_[id]();
+    }
 }
 
 void SimulatedSlave::Emcy(uint16_t error_code, uint8_t error_register)
@@ -97,6 +104,11 @@ void SimulatedSlave::registerObject(const std::string& name, uint16_t index, uin
 {
     object_getters_[name] = createGetter(index, subindex, object_type);
     object_setters_[name] = createSetter(index, subindex, object_type);
+}
+
+void SimulatedSlave::setupObjectCallback(uint16_t idx, uint8_t subidx, sol::function fn)
+{
+    object_callbacks_[{idx, subidx}] = fn;
 }
 
 SimulatedSlave::ObjectGetter SimulatedSlave::createGetter(const uint16_t index, const uint8_t subindex, ObjectType object_type)

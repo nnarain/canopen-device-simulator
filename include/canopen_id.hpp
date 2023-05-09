@@ -21,7 +21,7 @@ struct CanOpenObjectId
         return (index << 16) | subindex;
     }
 
-    bool operator<(const CanOpenObjectId& other)
+    bool operator<(const CanOpenObjectId& other) const
     {
         return (*this).unique_key() < other.unique_key();
     }

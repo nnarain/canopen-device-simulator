@@ -50,6 +50,7 @@ public:
             const std::string& dcf_txt,
             const std::string& dcf_bin, uint8_t id,
             const std::string& script);
+    virtual ~SimulatedSlave() = default;
 
     /**
      * Signal initialization step to the script
@@ -80,10 +81,11 @@ private:
     // -----------------------------------------------------------------------------------------------------------------
 
     sol::object readObject(sol::stack_object key, sol::this_state L);
-
     void writeObject(sol::stack_object key, sol::stack_object value, sol::this_state);
 
     void registerObject(const std::string& name, uint16_t index, uint8_t subindex, ObjectType object_type);
+
+    void setupObjectCallback(uint16_t idx, uint8_t subidx, sol::function fn);
 
     ObjectGetter createGetter(const uint16_t index, const uint8_t subindex, ObjectType object_type);
 
@@ -141,4 +143,6 @@ private:
 
     std::map<std::string, ObjectGetter> object_getters_;
     std::map<std::string, ObjectSetter> object_setters_;
+
+    std::map<CanOpenObjectId, sol::function> object_callbacks_;
 };
