@@ -10,9 +10,10 @@ function OnInit()
 
     ObjectCallback(0x4000, 0x00, FooUpdated)
 
-    print('Foo: ' .. string.format('0x%4X', objects.foo))
-    print('Bar: ' .. string.format('0x%4X', objects.bar))
-    print('Baz: ' .. string.format('0x%4X', objects.baz))
+    print('Foo:  ' .. string.format('0x%4X', objects.foo))
+    print('Bar:  ' .. string.format('0x%4X', objects.bar))
+    print('Baz:  ' .. string.format('0x%4X', objects.baz))
+    print('SCID: ' .. string.format('0x%8X', objects.scid))
 
     -- VeryUsefulHelper()
 end
