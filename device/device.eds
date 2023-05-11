@@ -8,7 +8,7 @@ Description=
 CreationTime=9:51PM
 CreationDate=05-10-2023
 CreatedBy=
-ModificationTime=10:26PM
+ModificationTime=11:21PM
 ModificationDate=05-10-2023
 ModifiedBy=
 
@@ -1103,7 +1103,8 @@ PDOMapping=1
 [4003]
 ParameterName=SCID
 ObjectType=0x7
-DataType=0x7
+;StorageLocation=RAM
+DataType=0x0007
 AccessType=ro
 DefaultValue=0xDEADBEEF
 PDOMapping=0
@@ -1114,7 +1115,7 @@ ObjectType=0x7
 ;StorageLocation=RAM
 DataType=0x000A
 AccessType=rw
-DefaultValue=00000000
+DefaultValue=
 PDOMapping=0
 
 [4005]
