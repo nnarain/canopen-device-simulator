@@ -19,8 +19,8 @@ function OnInit()
 end
 
 function OnTick()
-    objects.bar = objects.bar + 1
-    print('bar: ' .. objects.bar .. ', foo: ' .. objects.foo)
+    -- objects.bar = objects.bar + 1
+    -- print('bar: ' .. objects.bar .. ', foo: ' .. objects.foo)
 end
 
 function FooUpdated()
