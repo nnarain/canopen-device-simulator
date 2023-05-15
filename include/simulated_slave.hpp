@@ -34,7 +34,8 @@ enum class ObjectType
     UINT8,
     UINT16,
     UINT32,
-    UINT64
+    UINT64,
+    STRING,
 };
 
 /**

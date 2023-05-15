@@ -34,7 +34,8 @@ SimulatedSlave::SimulatedSlave(lely::io::TimerBase& timer, lely::io::CanChannelB
         "UINT8", ObjectType::UINT8,
         "UINT16", ObjectType::UINT16,
         "UINT32", ObjectType::UINT32,
-        "UINT64", ObjectType::UINT64
+        "UINT64", ObjectType::UINT64,
+        "STRING", ObjectType::STRING
     );
 
     // Register `this` class as the object dictionary accessor
@@ -136,6 +137,16 @@ SimulatedSlave::ObjectGetter SimulatedSlave::createGetter(const uint16_t index, 
             return createGetter<uint32_t>(index, subindex);
         case ObjectType::UINT64:
             return createGetter<uint64_t>(index, subindex);
+        case ObjectType::INT8:
+            return createGetter<int8_t>(index, subindex);
+        case ObjectType::INT16:
+            return createGetter<int16_t>(index, subindex);
+        case ObjectType::INT32:
+            return createGetter<int32_t>(index, subindex);
+        case ObjectType::INT64:
+            return createGetter<int64_t>(index, subindex);
+        // case ObjectType::STRING:
+        //     return createGetter<std::string>(index, subindex);
         default:
             throw std::invalid_argument{"Invalid object type"};
     }
@@ -153,6 +164,14 @@ SimulatedSlave::ObjectSetter SimulatedSlave::createSetter(const uint16_t index, 
             return createSetter<uint32_t>(index, subindex);
         case ObjectType::UINT64:
             return createSetter<uint64_t>(index, subindex);
+        case ObjectType::INT8:
+            return createSetter<int8_t>(index, subindex);
+        case ObjectType::INT16:
+            return createSetter<int16_t>(index, subindex);
+        case ObjectType::INT32:
+            return createSetter<int32_t>(index, subindex);
+        case ObjectType::INT64:
+            return createSetter<int64_t>(index, subindex);
         default:
             throw std::invalid_argument{"Invalid object type"};
     }
